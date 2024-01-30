@@ -378,7 +378,7 @@ class UniProtTxtParser:
         header_started = False
         header_found = False
         header = ''
-        with open(pkinfam_fp, 'r') as fd:
+        with open(pkinfam_fp, 'r', encoding='utf-8') as fd:
             for line in fd:
                 if set(line.strip()) == set('='):
                     if header_started:
@@ -396,7 +396,7 @@ class UniProtTxtParser:
                 else:
                     prev_line = line
         
-        output_fd = open(join(output_dp, 'kinase_family.txt'), 'w')
+        output_fd = open(join(output_dp, 'kinase_family.txt'), 'w', encoding='utf-8')
         for family, kinase_set in kinase_family.items():
             if family.startswith('Atypical'):
                 parts = family.strip().split()
@@ -439,7 +439,7 @@ class UniProtTxtParser:
         nb_ppi = 0
         self._parse_pkinfam(pkinfam_fp, output_dp)
 
-        with open(interpro_fp, 'r') as fd:
+        with open(interpro_fp, 'r', encoding='utf-8') as fd:
             next(fd)
             for line in fd:
                 interpro_id, interpro_type = line.strip().split('\t')[:2]
@@ -590,7 +590,7 @@ class HumanProteinAtlasParser:
         start = timer()
         nb_entries = 0
         for event, entry in ET.iterparse(xml_fd, events=('start', 'end')):
-            if entry.tag == "entry" and event == "end" and len(entry.getchildren()) > 2:
+            if entry.tag == "entry" and event == "end" and len(list(entry)) > 2:
                 nb_entries += 1
                 if nb_entries % 5 == 0:
                     speed = nb_entries / (timer() - start)
@@ -796,7 +796,7 @@ class SetWriter:
         """
         self._lines = []
         self._lineset = set()
-        self._fd = open(path, 'w')
+        self._fd = open(path, 'w', encoding='utf-8')
         self._clear_on_flush = True
         self._closed = False
 
@@ -1433,7 +1433,7 @@ class KeggParser:
         
         current_entry = []
         meta_writer = SetWriter(join(output_dp, 'disease_meta.txt'))
-        with open(diseases_fp, 'r') as diseases_fd:
+        with open(diseases_fp, 'r', encoding='utf-8') as diseases_fd:
             for line in diseases_fd:
                 if line.startswith('///'):
                     self.parse_disease_entry(
@@ -1533,7 +1533,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(ppi_fp, 'r') as ppi_fp:
+        with open(ppi_fp, 'r', encoding='utf-8') as ppi_fp:
             # Skip header in first line
             next(ppi_fp)
             try:
@@ -1570,7 +1570,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(pathway_fp, 'r') as pathway_fd:
+        with open(pathway_fp, 'r', encoding='utf-8') as pathway_fd:
             for line in pathway_fd:
                 (parent, child) = line.strip().split('\t')
                 output_fd.write(f'{child}\tPARENT_PATHWAY\t{parent}\n')
@@ -1594,7 +1594,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(comp_path_fp, 'r') as comp_path_fd:
+        with open(comp_path_fp, 'r', encoding='utf-8') as comp_path_fd:
             # Skip header in first line
             next(comp_path_fd)
             for line in comp_path_fd:
@@ -1622,7 +1622,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(prot_comp_fp, 'r') as prot_comp_fd:
+        with open(prot_comp_fp, 'r', encoding='utf-8') as prot_comp_fd:
             next(prot_comp_fd)
             for line in prot_comp_fd:
                 parts = line.strip().split('\t')
@@ -1658,7 +1658,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(omim_mappings_fp, 'r') as omim_mappings_fd:
+        with open(omim_mappings_fp, 'r', encoding='utf-8') as omim_mappings_fd:
             # Skip header line
             next(omim_mappings_fd)
             for line in omim_mappings_fd:
@@ -1688,7 +1688,7 @@ class ReactomeParser:
             for line in mappings_fd:
                 parts = line.strip().split('\t')
                 
-                if 'generated-by: ' in parts[0] or 'date-generated: ' in parts[0]:
+                if 'generated-by: ' in parts[0] or 'date-generated: ' in parts[0] or 'Project-release' in parts[0]:
                     continue
 
                 org = parts[12].split(':')[1]
@@ -1721,7 +1721,7 @@ class ReactomeParser:
             The path to the output file
         """
         output_fd = SetWriter(output_fp)
-        with open(source_fp, 'r') as fd:
+        with open(source_fp, 'r', encoding='utf-8') as fd:
             for line in fd:
                 pathway, name, species = line.strip().split('\t')
                 output_fd.write(f'{pathway}\tNAME\t{name}\n')
@@ -2557,7 +2557,7 @@ class CTDParser:
         nb_entries += 1
 
         protein_set = set()
-        with open(uniprot_fp, 'r') as fd:
+        with open(uniprot_fp, 'r', encoding='utf-8') as fd:
             for line in fd:
                 protein_set.add(line.split('\t')[0])
 
@@ -2812,7 +2812,7 @@ class IntactParser():
         nb_entries = 0
         # Read set of protein protein interactions extracted from uniprot
         interaction_set = set()
-        with open(uniprot_fp, 'r') as uniprot_fd:
+        with open(uniprot_fp, 'r', encoding='utf-8') as uniprot_fd:
             for line in uniprot_fd:
                 (sub, _, obj) = line.strip().split('\t')
                 interaction_set.add((sub, obj))
@@ -3092,7 +3092,7 @@ class MESHParser():
         drug_writer.flush()
 
     def _parse_mesh_supplementary_concepts(self, supp_fp, disease_meta_writer, drug_meta_writer, disease_link_writer, drug_link_writer):
-        with open(supp_fp, 'r') as xml_fd:
+        with open(supp_fp, 'r', encoding='utf-8') as xml_fd:
             for event, entry in ET.iterparse(xml_fd):
                 if entry.tag == 'SupplementalRecord':
                     entry_type = entry.attrib['SCRClass']
@@ -3156,7 +3156,7 @@ class MESHParser():
         drug_writer = SetWriter(join(output_dp, 'mesh_drug_tree.txt'))
         disease_link_writer = SetWriter(join(output_dp, 'mesh_disease_concept_heading.txt'))
         drug_link_writer = SetWriter(join(output_dp, 'mesh_drug_concept_heading.txt'))
-        with open(desc_fp, 'r') as source_fd:
+        with open(desc_fp, 'r', encoding='utf-8') as source_fd:
             for line in source_fd:
                 if len(line.strip()) == 0:
                     nb_entries += 1
